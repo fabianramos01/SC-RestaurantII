@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Restaurante</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/firstPage.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+    <link href='https://fonts.googleapis.com/css?family=Montserrat:100,300,400,700,900' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div id="home" class="home">
+        <div class="title">
+            <h1 class="main-title">Simulación de Restaurante</h1>
+            <p>Este programa está destinado a la simulación de un restarante.</p>
+            <p>Ingresa el número de horas a simular y da clic en <b>Generar Simulación</b> para empezar</p>
+        </div>
+        <form>
+            <input id="hours_input" type="number" class="custom-input" placeholder="Horas simuladas"/>
+            <button id="start_button" class="custom-button" onclick="start_simulation(event)">Generar Simulación</button>
+        </form>
+        <div class="flow">
+            <div id="one" class="step"><span>Entra</span></div>
+            <div id="two" class="step"><span>Selecciona un Plato</span></div>
+            <div id="three" class="step"><span>Consume</span></div>
+            <div id="four" class="step"><span>Paga</span></div>
+            <div id="five" class="step"><span>¿Califica?</span></div>
+            <div id="six" class="step"><span>Sale</span></div>
+        </div>
+    </div>
+    <div id="simulation" class="simulation">
+        <div class="header">
+            <div class="indicator">
+                <b>Horas Simuladas</b>
+                <p id="hours"></p>
+            </div>
+            <div class="indicator">
+                <b>Jornada</b>
+                <p id="period"></p>
+            </div>
+            <div class="indicator">
+                <b>Usuarios atendidos</b>
+                <p id="users"></p>
+            </div>
+            <div class="indicator">
+                <b>Tiempo promedio por cliente</b>
+                <p id="timeIn"></p>
+            </div>
+            <div class="indicator">
+                <b>Plato mejor calificado</b>
+                <p id="best-dish"></p>
+                <p id="best-grade"></p>
+            </div>
+            <div class="indicator">
+                <b>Plato más solicitado</b>
+                <p id="most-requested-dish"></p>
+                <p id="most-requested-grade"></p>
+            </div>
+        </div>
+        <div class="controls">
+            <button class="btn" onclick="pause()"><i class="fa fa-pause"></i></button>
+            <button class="btn" onclick="play()"><i class="fa fa-play"></i></button>
+            <button class="btn" onclick="stop()"><i class="fa fa-stop"></i></button>
+        </div>
+        <div class="content">
+            <div class="animation-panel">
+                <div id="pool-1" class="pool">
+                    <div class="table">
+                        MESA 1
+                    </div>
+                </div>
+                <div id="pool-2" class="pool">
+                    <div class="table">
+                        MESA 2
+                    </div>
+                </div>
+                <div class="cash-register">
+                    CAJA
+                </div>
+            </div>
+            <p id="chronometer">00:00:00</p>
+            <div id="results" class="results">
+                <div>
+                    <h2>Solicitud de platos</h2>
+                    <br/>
+                    <table id="requested-dishes">
+                        <thead>
+                        <tr>
+                            <th>Plato</th>
+                            <th>Veces solicitadas</th>
+                        </tr>
+                        </thead>
+                        <tbody id="requested-dishes-body"></tbody>
+                    </table>
+                </div>
+                <div>
+                    <h2>Calificación de platos</h2>
+                    <br/>
+                    <table id="dishes-grade">
+                        <thead>
+                        <tr>
+                            <th>Plato</th>
+                            <th>Calificación</th>
+                        </tr>
+                        </thead>
+                        <tbody id="dishes-grade-body"></tbody>
+                    </table>
+                </div>
+                <div>
+                    <h2>Resultados acumulados</h2>
+                    <br/>
+                    <table id="costumers-results">
+                        <thead>
+                        <tr>
+                            <th>C</th>
+                            <th>Jornada</th>
+                            <th>Plato</th>
+                            <th>Mesa</th>
+                            <th>Calificación</th>
+                        </tr>
+                        </thead>
+                        <tbody id="costumers-results-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="endModal" class="modal-container">
+        <div class="modal">
+            <span class="close-icon" onclick="closeEndModal()">&#9932;</span>
+            <div class="modal-header">
+                <p class="modal-title">La simulación ha finalizado</p>
+                <p class="modal-description">Puedes ver los resultados de la ejecución en la última sección.</p>
+                <p class="modal-description">Besitos, besitos, chao Chao</p>
+            </div>
+            <div class="triangle-decoration">
+                <div id="firstT" class="triangle-up"></div>
+                <div id="secondT" class="triangle-down"></div>
+                <div id="threeT" class="triangle-up"></div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
+            integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/easytimer@1.1.1/dist/easytimer.min.js"> </script>
+    <script type="text/javascript" charset="utf-8">
+        const socket = io();
+        const timer = new Timer();
+        let isRunning = false;
+
+        timer.addEventListener('secondsUpdated', e => {
+            $('#chronometer').text(timer.getTimeValues().toString());
+        });
+
+        $(document).ready(function () {
+            socket.on('connect', function () {
+                console.log('Conectado');
+
+                socket.on('user', function (data) {
+                    // resultado de cliente
+                    const newRow = `<tr><td>${data[0]}</td><td>${data[1]}</td><td>${data[2]}</td><td>${data[3]}</td><td>${data[4] >= 0 ? data[4] : 'No calificado'}</td></tr>`;
+                    $('#costumers-results').children('tbody').prepend(newRow);
+                });
+
+                socket.on('period', function (data) {
+                    // Jornada
+                    $('#period').text(data)
+                });
+
+                socket.on('hours', function (data) {
+                    // Horas simuladas
+                    $('#hours').text(data)
+                });
+
+                socket.on('dishs_count', function (data) {
+                    // numero de veces que se ha solicitado un plato
+                    if(data[0][1] > 0) {
+                        $('#most-requested-dish').text(data[0][0]);
+                        $('#most-requested-grade').html(`${data[0][1]} &#127790;`);
+                    }
+                    $('#requested-dishes').empty();
+
+                    const header = `<tr><th>Plato</th><th>Veces solicitadas</th></tr>`;
+                    $('#requested-dishes').append(header);
+                    data.forEach(d => {
+                        const newRow = `<tr><td>${d[0]}</td><td>${d[1]}</td><tr/>`;
+                        $('#requested-dishes').children('tbody').append(newRow);;
+                    })
+                });
+
+                socket.on('dishs_prom', function (data) {
+                    // platos y puntaje
+                    if (data[0][1] > 0) {
+                        $('#best-dish').text(data[0][0]);
+                        $('#best-grade').html(`${data[0][1]} &#11088;`);
+                    }
+                    $('#dishes-grade').empty();
+
+                    const header = `<tr><th>Plato</th><th>Calificación</th></tr>`;
+                    $('#dishes-grade').append(header);
+                    data.forEach(d => {
+                        const newRow = `<tr><td>${d[0]}</td><td>${d[1]}</td><tr/>`;
+                        $('#dishes-grade').children('tbody').append(newRow);
+                    })
+                });
+
+                socket.on('end_simulation', function (data) {
+                    $('#endModal').show();
+                    goToSection('results');
+                    timer.stop();
+                });
+
+                socket.on('count_users', function (data) {
+                    $('#users').text(data);
+                });
+
+                socket.on('user_in', function (data) {
+                    const table = data.table.split(' ')[1];
+                    const newClient = table === '1' ?
+                        `<div class="person person-1">C ${data._id}</div>` :
+                        `<div class="person person-2">C ${data._id}</div>`;
+                    const newTable = `<div class="table"> MESA ${table}</div>`;
+                    $(`#timeIn`).text(`${data.time_in.toFixed(2)}s`);
+                    $(`#pool-${table}`).empty();
+                    $(`#pool-${table}`).append(newTable);
+                    $(`#pool-${table}`).prepend(newClient);
+                    const person = document.getElementsByClassName(`person person-${table}`);
+                    person[0].style['-webkit-animation-duration'] = `${data.time_in}s`;
+                });
+            });
+        });
+
+        $(window).bind('beforeunload', function () {
+            console.log(isRunning)
+            goToSection('home');
+            if (isRunning) {
+                return 'It is going to be refreshed';
+            }
+        });
+
+        function start_simulation(e) {
+            e.preventDefault()
+            const hours = document.getElementById('hours_input').value
+            socket.emit('start', {data: hours});
+            goToSection('simulation');
+            timer.start();
+            isRunning = true;
+        }
+        
+        function closeEndModal() {
+            $('#endModal').hide();
+        }
+        
+        function goToSection(id) {
+            $('html,body').animate({
+                scrollTop: $(`#${id}`).offset().top
+            }, 'slow');
+        }
+
+        function pause() {
+            changeAnimationState('paused')
+            socket.emit('pause', {data: 'Pause'});
+            timer.pause();
+        }
+
+        function play() {
+            changeAnimationState('running')
+            socket.emit('play', {data: 'Play'});
+            timer.start();
+        }
+        
+        function stop() {
+            socket.emit('cancel', {data: 'Cancel'});
+            timer.stop();
+            isRunning = false;
+
+            //reset UI
+            goToSection('home');
+            document.getElementById('hours_input').value = '';
+            $('#chronometer').text('00:00:00');
+            $('#hours').text('');
+            $('#period').text('');
+            $('#users').text('');
+            $('#timeIn').text('');
+            $('#best-dish').text('');
+            $('#best-grade').empty();
+            $('#most-requested-dish').text('');
+            $('#most-requested-grade').empty();
+            $("#costumers-results-body").empty();
+            $("#dishes-grade-body").empty();
+            $("#requested-dishes-body").empty();
+        }
+
+        function changeAnimationState(state) {
+            document.getElementsByClassName('person person-1')[0].style.animationPlayState = state;
+            document.getElementsByClassName('person person-2')[0].style.animationPlayState = state;
+        }
+    </script>
+</body>
+</html>

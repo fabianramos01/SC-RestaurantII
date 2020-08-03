@@ -1,0 +1,135 @@
+.home {
+    background-color: white;
+    height: 100vh;
+    width: 100%;
+    color: skyblue;
+    position: relative;
+    text-align: center;
+}
+
+.title {
+    position: absolute;
+    top: 27%;
+    left: 50%;
+    transform: translate(-50%, -27%);
+    width: 100%;
+}
+
+.main-title {
+    font-size: 54px;
+    font-weight: 500;
+    letter-spacing: 10px;
+    margin-bottom: 20px;
+}
+
+form {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    padding: 10px;
+}
+
+.custom-input {
+    display: block;
+    outline: none;
+    border: none;
+    width: 100%;
+    margin: 30px 0;
+    font-size: 28px;
+    background-color: rgba(255, 255, 255, 0);
+    border-bottom: 2px solid skyblue;
+    color: lightblue;
+}
+
+::placeholder {
+    color: lightblue;
+}
+
+.custom-button {
+    width: 100%;
+    border: 1px solid lightblue;
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0);
+    font-size: 20px;
+    color: skyblue;
+    padding: 20px;
+    transition: background-color .3s;
+    box-sizing: border-box;
+}
+
+.custom-button:hover,
+.custom-button:active,
+.custom-button:focus {
+    cursor: pointer;
+    background-color: skyblue;
+    color: white;
+    outline: none;
+}
+
+.flow {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: absolute;
+    bottom: 10%;
+}
+
+.step {
+    width: 130px;
+    height: 70px;
+    background-color: skyblue;
+    color: white;
+    margin: 15px 30px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 1px 1px 6px skyblue;
+    transition: all .5s;
+    animation: step 2s;
+    box-sizing: border-box;
+}
+/*
+.step:hover {
+    border: 1px solid skyblue;
+    background-color: white;
+    color: skyblue;
+    transform: scale(1.1);
+}
+*/
+
+#one {
+    animation-delay: 1s;
+}
+
+#two {
+    animation-delay: 3s;
+}
+
+#three {
+    animation-delay: 5s;
+}
+
+#four {
+    animation-delay: 7s;
+}
+
+#five {
+    animation-delay: 9s;
+}
+
+#six {
+    animation-delay: 11s;
+}
+
+@keyframes step {
+    50% {
+        border: 1px solid skyblue;
+        background-color: white;
+        color: skyblue;
+        transform: scale(1.05);
+    }
+}
