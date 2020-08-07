@@ -6,6 +6,7 @@ from simulation.dinerTable import DinerTable
 from simulation.waiter import Waiter
 from simulation.table import Table
 from simulation.dish import Dish
+import operator
 
 restaurant = None
 
@@ -35,7 +36,7 @@ class DinerArriveTimer(Thread):
         self.diners = diners
         self.state = True
         self.pause = False
-        self.run()
+        self.start()
 
     def run(self):
         while self.state:
@@ -78,6 +79,7 @@ class Restaurant:
         self.init_vars()
         self.timer_res = MyTimer(1, self)
         self.timer_res.start()
+        self.atm.start()
         self.assign_period()
 
     def init_vars(self):
@@ -86,9 +88,12 @@ class Restaurant:
         for i in range(self.tables):
             self.table_list.append(Table('Mesa ' + str(i + 1), True))
         for i in range(self.waiters):
-            self.waiter_list.append(Waiter('Mesero ' + str(i + 1), self))
+            waiter = Waiter('Mesero ' + str(i + 1), self)
+            waiter.start()
+            self.waiter_list.append(waiter)
 
     def assign_period(self):
+        self.atm.pause = True
         self.socket.emit('hours', sum(i for i in self.period_list))
         if self.hours < 1:
             print('Listo')
@@ -116,9 +121,10 @@ class Restaurant:
             self.count_users = 0
             self.diner_timer = DinerArriveTimer(5, self, self.users)
             self.socket.emit('period', self.count_periods)
+            self.atm.pause = False
 
     def add_diner(self):
-        for i in range(4):
+        for i in range(2):
             quantity = np.random.randint(1, 3)
             self.users -= quantity
             self.diner_wait_list.append(quantity)
@@ -150,7 +156,7 @@ class Restaurant:
         if waiter is not None and len(self.diner_table_list):
             waiter.set_diner_table(self.diner_table_list.pop(0))
             self.socket.emit('waiter_table', {'waiter': waiter.id_waiter, 'table': waiter.diner_table.table.name})
-            waiter.run()
+            waiter.pause = False
 
     def dinner_not_in_restaurant(self):
         for i in self.table_list:
@@ -188,10 +194,22 @@ class Restaurant:
                     dish.add_count()
                     if -1 < diner.rating:
                         dish.add_rating(diner.rating)
-        self.socket.emit('dishs_prom', sorted(self.dishs, key=lambda Dish: dish.get_rating_prom(), reverse=True))
-        self.socket.emit('dishs_count', sorted(self.dishs, key=lambda Dish: dish.count, reverse=True))
+        self.socket.emit('dishs_prom', sorted(self.dict_dish_rating_prom().items(), key=operator.itemgetter(1), reverse=True))
+        self.socket.emit('dishs_count', sorted(self.dict_dish_count().items(), key=operator.itemgetter(1), reverse=True))
         if self.dinner_not_in_restaurant():
             self.assign_period()
+
+    def dict_dish_count(self):
+        dish_dict = {}
+        for item in self.dishs:
+            dish_dict.update([(item.name, item.count)])
+        return dish_dict
+
+    def dict_dish_rating_prom(self):
+        dish_dict = {}
+        for item in self.dishs:
+            dish_dict.update([(item.name, item.get_rating_prom())])
+        return dish_dict
 
     def send_hour(self):
         self.count_hours += 1
