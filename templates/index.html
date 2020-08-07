@@ -229,6 +229,32 @@
                     const person = document.getElementsByClassName(`person person-${table}`);
                     person[0].style['-webkit-animation-duration'] = `${data.time_in}s`;
                 });
+
+                socket.on('pay_queue', function (data) {
+                    console.log(data)
+                });
+
+                socket.on('pay_attention', function (data) {
+                    console.log(data)
+                });
+
+                socket.on('pay_attention', function (data) {
+                    console.log(data)
+                });
+
+                socket.on('wait_queue', function (data) {
+                    console.log(data)
+                });
+
+                socket.on('diner_table', function (data) {
+                    {# Grupo de la mesa #}
+                    console.log(data)
+                });
+
+                socket.on('waiter_table', function (data) {
+                    {# Asignación de mesero a una mesa #}
+                    console.log(data)
+                });
             });
         });
 
