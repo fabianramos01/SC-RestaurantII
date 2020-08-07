@@ -18,13 +18,13 @@ class DinerTable(Thread):
         self.attention_time = attention_time
         self.pay_time = pay_time
         self.usage_time = usage_time
-        for i in range(diner_count):
+        for i in range(int(diner_count)):
             id_diner_session += 1
-            dish = dishs.pop(int(np.random.uniform(0, len(dishs))))
+            dish = dishs.pop(int(np.random.random_integers(0, len(dishs)-1)))
             self.diner_list.append(
                 Diner(id_diner_session, i + 1, dish.name))
 
     def run(self):
         sleep(self.usage_time)
         self.table.available = True
-        self.restaurant.to_pay()
+        self.restaurant.to_pay(self)

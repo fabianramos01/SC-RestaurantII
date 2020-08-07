@@ -41,8 +41,8 @@ class DinerArriveTimer(Thread):
         while self.state:
             if not self.pause:
                 sleep(self.time)
-                self.restaurant_n.add_dinner()
-                self.state = True if 1 < self.diners else False
+                self.restaurant_n.add_diner()
+                self.state = True if 0 < self.diners else False
             else:
                 sleep(5)
 
@@ -100,28 +100,29 @@ class Restaurant:
             if self.hours < 10:
                 self.period = self.hours
                 self.hours = 0
-                self.users = int(np.random.uniform(200, 300) / 8 * self.period)
+                self.users = int(np.random.randint(200, 300) / 8 * self.period)
             else:
                 if self.hours < 13:
                     self.period = self.hours
                     self.hours = 0
                 else:
-                    self.period = np.random.uniform(10, 12)
+                    self.period = np.random.randint(10, 12)
                     self.hours -= self.period
-                self.users = np.random.uniform(200, 300)
+                self.users = np.random.randint(200, 300)
             self.time_in = ((self.period * 60) / int(self.users / self.tables))
             self.period_list.append(self.period)
             print(str(self.users) + ' ' + str(self.period) + ' ' + str(self.time_in))
             self.count_periods += 1
             self.count_users = 0
-            self.diner_timer = DinerArriveTimer(7, restaurant, self.users)
+            self.diner_timer = DinerArriveTimer(5, self, self.users)
             self.socket.emit('period', self.count_periods)
 
     def add_diner(self):
-        quantity = np.random.uniform(1, 3)
-        self.users -= quantity
-        self.diner_wait_list.append(quantity)
-        self.socket.emit('wait_queue', np.sum(self.diner_wait_list))
+        for i in range(4):
+            quantity = np.random.randint(1, 3)
+            self.users -= quantity
+            self.diner_wait_list.append(quantity)
+        self.socket.emit('wait_queue', {'count': int(np.sum(self.diner_wait_list))})
         self.assign_table()
 
     def assign_table(self):
@@ -130,22 +131,26 @@ class Restaurant:
                 if i.available and 0 < len(self.diner_wait_list):
                     i.available = False
                     diner_count = self.diner_wait_list.pop(0)
-                    self.socket.emit('wait_queue', np.sum(self.diner_wait_list))
+                    self.socket.emit('wait_queue', int(np.sum(self.diner_wait_list)))
                     self.count_diner_table += 1
                     diner_table = DinerTable(diner_count, self.count_diner_table, self.period, self.count_users,
-                                             i, self, self.socket, self.dishs_options.copy(),
-                                             self.time_in / 3, self.time_in / 3, self.time_in / 3)
+                                             i, self, self.socket, self.dishs.copy(),
+                                             self.time_in, self.time_in, self.time_in)
                     self.count_users += diner_count
                     self.socket.emit('count_users', self.count_users)
                     self.diner_table_list.append(diner_table)
-                    self.socket.emit('diner_table', diner_table)
+                    self.socket.emit('diner_table',
+                                     {'table': diner_table.table.name, 'users': len(diner_table.diner_list),
+                                      'attention_time': diner_table.attention_time, 'pay_time': diner_table.pay_time,
+                                        'usage_time': diner_table.usage_time})
                     self.assign_waiter()
 
     def assign_waiter(self):
         waiter = self.available_waiter()
-        if waiter is not None:
+        if waiter is not None and len(self.diner_table_list):
             waiter.set_diner_table(self.diner_table_list.pop(0))
             self.socket.emit('waiter_table', {'waiter': waiter.id_waiter, 'table': waiter.diner_table.table.name})
+            waiter.run()
 
     def dinner_not_in_restaurant(self):
         for i in self.table_list:
@@ -174,7 +179,7 @@ class Restaurant:
 
     def add_table_list_registry(self, diner_table):
         for diner in diner_table.diner_list:
-            user = [diner_table.id_session, diner_table.id_diner_table, diner_table.table, diner.id_diner,
+            user = [diner_table.id_session, diner_table.id_diner_table, diner_table.table.name, diner.id_diner,
                     diner.id_diner_table, diner.dish_name, diner.rating]
             self.socket.emit('user', user)
             self.user_list.append(user)

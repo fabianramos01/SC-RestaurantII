@@ -14,7 +14,6 @@ class Waiter(Thread):
     def set_diner_table(self, diner_table):
         self.available = False
         self.diner_table = diner_table
-        self.run()
 
     def run(self):
         sleep(self.diner_table.attention_time)

@@ -20,7 +20,7 @@ class ATM(Thread):
                 if 0 < len(self.diner_table):
                     diner_item = self.diner_table.pop(0)
                     self.restaurant.socket.emit('pay_queue', len(self.diner_table))
-                    self.restaurant.socket.emit('pay_attention', diner_item)
+                    self.restaurant.socket.emit('pay_attention', diner_item.id_diner_table)
                     sleep(diner_item.pay_time)
                     self.restaurant.add_table_list_registry(diner_item)
                 else:
