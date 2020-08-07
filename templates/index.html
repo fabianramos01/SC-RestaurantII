@@ -64,20 +64,62 @@
             <button class="btn" onclick="stop()"><i class="fa fa-stop"></i></button>
         </div>
         <div class="content">
+            <div id="wait-queue">
+                <b>Grupos de personas en espera</b>
+                <p id="wait-queue-number">0</p>
+            </div>
             <div class="animation-panel">
                 <div id="pool-1" class="pool">
                     <div class="table">
                         MESA 1
+                    </div>
+                    <div class="group-time">
+                        <p id="attention-1">Tiempo de atención: 0</p>
+                        <p id="usage-1">Tiempo de consumo: 0</p>
                     </div>
                 </div>
                 <div id="pool-2" class="pool">
                     <div class="table">
                         MESA 2
                     </div>
+                    <div class="group-time">
+                        <p id="attention-2">Tiempo de atención: 0</p>
+                        <p id="usage-2">Tiempo de consumo: 0</p>
+                    </div>
                 </div>
-                <div class="cash-register">
-                    CAJA
+                <div id="pool-3" class="pool">
+                    <div class="table">
+                        MESA 3
+                    </div>
+                    <div class="group-time">
+                        <p id="attention-3">Tiempo de atención: 0</p>
+                        <p id="usage-3">Tiempo de consumo: 0</p>
+                    </div>
                 </div>
+                <div id="pool-4" class="pool">
+                    <div class="table">
+                        MESA 4
+                    </div>
+                    <div class="group-time">
+                        <p id="attention-4">Tiempo de atención: 0</p>
+                        <p id="usage-4">Tiempo de consumo: 0</p>
+                    </div>
+                </div>
+                <div id="pool-5" class="pool">
+                    <div class="table">
+                        MESA 5
+                    </div>
+                    <div class="group-time">
+                        <p id="attention-5">Tiempo de atención: 0</p>
+                        <p id="usage-5">Tiempo de consumo: 0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="cash-register">
+                <p>CAJA</p>
+                <br/>
+                <p id="pay-group">Grupo actual: 0</p>
+                <p id="pay-queue">Grupos en espera: 0</p>
             </div>
             <p id="chronometer">00:00:00</p>
             <div id="results" class="results">
@@ -100,7 +142,7 @@
                     <table id="dishes-grade">
                         <thead>
                         <tr>
-                            <th>Plato</th>
+                        <th>Plato</th>
                             <th>Calificación</th>
                         </tr>
                         </thead>
@@ -231,24 +273,43 @@
                 });
 
                 socket.on('pay_queue', function (data) {
-                    console.log(data)
+                    $('#pay-queue').text(`Grupos en espera: ${data}`);
                 });
 
                 socket.on('pay_attention', function (data) {
-                    console.log(data)
-                });
-
-                socket.on('pay_attention', function (data) {
-                    console.log(data)
+                    $('#pay-group').text(`Grupo actual: ${data}`);
                 });
 
                 socket.on('wait_queue', function (data) {
-                    console.log(data)
+                    $('#wait-queue-number').text(data.count);
                 });
 
                 socket.on('diner_table', function (data) {
                     {# Grupo de la mesa #}
-                    console.log(data)
+                    const table = data.table.split(' ')[1];
+                    const newTable = `<div class="table"> MESA ${table}</div>`;
+                    const stats = document.createElement('div');
+                    stats.setAttribute('class', 'group-time');
+
+                    const attention = document.createElement('p');
+                    attention.setAttribute('id', `attention-${table}`);
+                    attention.innerHTML = `Tiempo de atención: ${data.attention_time.toFixed(2)} m`;
+                    const usage = document.createElement('p');
+                    usage.setAttribute('id', `usage-${table}`);
+                    usage.innerHTML = `Tiempo de consumo: ${data.usage_time.toFixed(2)} m`;
+
+                    stats.append(attention);
+                    stats.append(usage);
+                    $(`#pool-${table}`).empty();
+                    $(`#pool-${table}`).append(newTable);
+                    $(`#pool-${table}`).append(stats);
+                    for (let i = 1; i <= data.users; i++) {
+                        const user = document.createElement('div');
+                        user.setAttribute('class', `person person-${i}`);
+                        user.style['-webkit-animation-duration'] = `${data.attention_time}s`;
+                        user.innerHTML = `C ${i}`;
+                        $(`#pool-${table}`).append(user);
+                    }
                 });
 
                 socket.on('waiter_table', function (data) {
