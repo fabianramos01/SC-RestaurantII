@@ -219,6 +219,12 @@ class Restaurant:
         self.state = False
         self.pause = True
         self.timer_res.pause = True
+        self.atm.pause = True
+        self.diner_timer.pause = True
+        for i in self.diner_table_list:
+            i.pause = True
+        for w in self.waiter_list:
+            w.pause = True
 
     def play_simulation(self):
         self.state = True
