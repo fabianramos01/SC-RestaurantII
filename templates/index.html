@@ -151,10 +151,12 @@
                     <table id="costumers-results">
                         <thead>
                         <tr>
-                            <th>C</th>
                             <th>Jornada</th>
-                            <th>Plato</th>
+                            <th>Grupo</th>
                             <th>Mesa</th>
+                            <th>Usuario jornada</th>
+                            <th>Usuario grupo</th>
+                            <th>Plato</th>
                             <th>Calificación</th>
                         </tr>
                         </thead>
@@ -198,7 +200,8 @@
 
                 socket.on('user', function (data) {
                     // resultado de cliente
-                    const newRow = `<tr><td>${data[0]}</td><td>${data[1]}</td><td>${data[2]}</td><td>${data[3]}</td><td>${data[4] >= 0 ? data[4] : 'No calificado'}</td></tr>`;
+                    const newRow =
+                        `<tr><td>${data[0]}</td><td>${data[1]}</td><td>${data[2]}</td><td>${data[3]}</td><td>${data[4]}</td><td>${data[5]}</td><td>${data[6] >= 0 ? data[4].toFixed(0) : 'No calificado'}</td></tr>`;
                     $('#costumers-results').children('tbody').prepend(newRow);
                 });
 
@@ -239,7 +242,7 @@
                     const header = `<tr><th>Plato</th><th>Calificación</th></tr>`;
                     $('#dishes-grade').append(header);
                     data.forEach(d => {
-                        const newRow = `<tr><td>${d[0]}</td><td>${d[1]}</td><tr/>`;
+                        const newRow = `<tr><td>${d[0]}</td><td>${d[1].toFixed(0)}</td><tr/>`;
                         $('#dishes-grade').children('tbody').append(newRow);
                     })
                 });
@@ -310,7 +313,6 @@
 
                 socket.on('waiter_table', function (data) {
                     {# Asignación de mesero a una mesa #}
-                    console.log(data)
                     const waiterId = data.waiter.split(' ')[1];
                     const table = data.table.split(' ')[1];
                     $(`.m-${waiterId}`).remove();
