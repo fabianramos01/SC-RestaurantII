@@ -141,7 +141,7 @@ class Restaurant:
                     self.count_diner_table += 1
                     diner_table = DinerTable(diner_count, self.count_diner_table, self.period, self.count_users,
                                              i, self, self.socket, self.dishs.copy(),
-                                             self.time_in+np.random.uniform(1, 2), self.time_in+np.random.uniform(5,6), self.time_in+np.uniform.randint(2,4))
+                                             (self.time_in+np.random.uniform(1, 2)), (self.time_in+np.random.uniform(5,6)), (self.time_in+np.random.uniform(2,4)))
                     self.count_users += diner_count
                     self.socket.emit('count_users', self.count_users)
                     self.diner_table_list.append(diner_table)
