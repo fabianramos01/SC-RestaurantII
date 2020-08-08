@@ -44,10 +44,6 @@
                 <p id="users"></p>
             </div>
             <div class="indicator">
-                <b>Tiempo promedio por cliente</b>
-                <p id="timeIn"></p>
-            </div>
-            <div class="indicator">
                 <b>Plato mejor calificado</b>
                 <p id="best-dish"></p>
                 <p id="best-grade"></p>
@@ -315,6 +311,13 @@
                 socket.on('waiter_table', function (data) {
                     {# Asignación de mesero a una mesa #}
                     console.log(data)
+                    const waiterId = data.waiter.split(' ')[1];
+                    const table = data.table.split(' ')[1];
+                    $(`.m-${waiterId}`).remove();
+                    const waiter = document.createElement('div');
+                    waiter.setAttribute('class', `person waiter m-${waiterId}`);
+                    waiter.innerHTML = `M ${waiterId}`;
+                    $(`#pool-${table}`).append(waiter);
                 });
             });
         });

@@ -150,6 +150,13 @@ h1 {
     animation: consumer1-1 1s ease-in;
 }
 
+.waiter {
+    box-shadow: 1px 3px 5px darkturquoise;
+    background: darkturquoise;
+    top: 250px;
+    left: 275px;
+}
+
 .table {
     height: 100px;
     width: 240px;
